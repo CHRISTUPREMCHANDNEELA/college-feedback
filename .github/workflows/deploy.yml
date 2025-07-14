@@ -1,0 +1,36 @@
+name: Deploy Flask App to EC2
+
+on:
+  push:
+    branches: [master]   
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install Ansible and SSH client
+        run: |
+          sudo apt update
+          sudo apt install -y ansible openssh-client
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/CollegeFeedback.pem
+          chmod 400 ~/.ssh/CollegeFeedback.pem
+          echo -e "Host 51.20.72.227\n  HostName 51.20.72.227\n  User ubuntu\n  IdentityFile ~/.ssh/CollegeFeedback.pem\n  StrictHostKeyChecking=no" >> ~/.ssh/config
+
+      - name: Run Ansible Playbook
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: False
+        run: |
+          ansible-playbook -i ansible/hosts.ini ansible/deploy-app.yml
