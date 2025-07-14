@@ -2,6 +2,7 @@
 - name: Deploy Flask App with Docker
   hosts: web
   become: true
+
   tasks:
     - name: Clone GitHub repo
       git:
