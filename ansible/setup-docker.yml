@@ -1,41 +1,60 @@
 ---
-- name: Setup Docker on EC2
+- name: Setup server with Docker
   hosts: web
-  become: yes
+  become: true
   tasks:
-    - name: Update APT packages
+    - name: Remove any existing Docker packages
       apt:
+        name:
+          - docker
+          - docker-engine
+          - docker.io
+          - containerd
+          - runc
+        state: absent
+        purge: true
+        autoremove: true
         update_cache: yes
-        force_apt_get: yes
 
     - name: Install dependencies
       apt:
         name:
-          - apt-transport-https
           - ca-certificates
           - curl
           - gnupg
           - lsb-release
         state: present
+        update_cache: yes
 
-    - name: Add Docker GPG key
+    - name: Add Docker’s official GPG key
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
-    - name: Add Docker repository
+    - name: Add Docker APT repository
       apt_repository:
-        repo: deb [arch=arm64] https://download.docker.com/linux/ubuntu jammy stable
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
         state: present
+        filename: docker
 
-    - name: Install Docker
+    - name: Install Docker CE
       apt:
-        name: docker-ce
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
         state: latest
         update_cache: yes
 
-    - name: Enable and start Docker
+    - name: Enable and start Docker service
       systemd:
         name: docker
-        enabled: yes
+        enabled: true
         state: started
+
+    - name: Install Docker Compose
+      shell: |
+        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+      args:
+        creates: /usr/local/bin/docker-compose
