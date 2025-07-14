@@ -1,0 +1,21 @@
+---
+- name: Deploy Flask App with Docker
+  hosts: web
+  become: true
+  tasks:
+    - name: Clone GitHub repo
+      git:
+        repo: 'https://github.com/CHRISTUPREMCHANDNEELA/college-feedback.git'
+        dest: /home/ubuntu/app
+        force: yes
+
+    - name: Build Docker image
+      shell: docker build -t feedback-app /home/ubuntu/app
+      args:
+        chdir: /home/ubuntu/app
+
+    - name: Stop and remove existing container (if any)
+      shell: docker rm -f feedback-container || true
+
+    - name: Run Flask container
+      shell: docker run -d -p 5000:5000 --name feedback-container feedback-app
