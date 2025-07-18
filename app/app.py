@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-app = Flask(_name_)
+app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -8,5 +8,5 @@ def index():
         return f"Thanks {name}, your feedback is submitted!"
     return render_template('form.html')
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
